@@ -1,0 +1,87 @@
+* SQLsmith for MonetDB
+    added SQLsmith Driver for MonetDB
+
+** Description
+SQLsmith is a random SQL query generator.
+
+
+** Dependencies:
+- C++11  
+- libpqxx // for postgresql 
+- boost::regex in case your std::regex is broken
+- monetdb_mapi // for monetdb
+
+
+
+** Building on Fedora
+: apt-get install build-essential autoconf autoconf-archive libpqxx-dev libboost-regex-dev libsqlite3-dev
+: cd ssmonetdb
+: autoreconf -i 
+: ./configure
+: make
+
+
+** Misc on x64 Ubuntu
+: For error: "Could not find a version of the Boost::Regex library!" using the following command
+: ./configure --with-boost-libdir=/usr/lib/x86_64-linux-gnu
+: For error: No package 'monetdb-mapi' found or No package 'LIBPQXX' found  
+: adjusting the PKG_CONFIG_PATH environment variable
+
+** Usage
+
+SQLsmith connects to the target database to retrieve the schema for
+query generation and to send the generated queries to.  Currently, all
+generated statements are rolled back.  Beware that SQLsmith does call
+functions that could possibly have side-effects
+(e.g. pg_terminate_backend).  Use a suitably *underprivileged user*
+for its connection to avoid this.
+
+Example invocation:
+
+: sqlsmith --verbose --monetdb="databasename"
+
+The following options are currently supported:
+
+| =--target=connstr=   | target postgresql database                       |
+| =--monetdb=dbname=   | target monetdb database                          |
+| =--log-to=connstr=   | database for logging errors (for postgresql only)|
+| =--verbose=          | emit progress output                             |
+| =--version=          | show version information                         |
+| =--seed=int=         | seed RNG with specified integer instead of PID   |
+| =--dry-run=          | print queries instead of executing them          |
+| =--max-queries=long= | terminate after generating this many queries     |
+| =--dump-all-graphs=  | dump generated ASTs for debugging                |
+
+Sample output:
+
+=--verbose= makes sqlsmith emit some progress indication to stderr.  A
+symbol is output for each query sent to the server.  Currently the
+following ones are generated:
+
+| symbol | meaning           | details                                       |
+|--------+-------------------+-----------------------------------------------|
+| .      | ok                | Query generated and executed with ok sqlstate |
+| s      | syntax error      | These are bugs in sqlsmith - please report    |
+| t      | timeout           | SQLsmith sets a statement timeout of 1s       |
+| c      | broken connection | These happen when a query crashes the server  |
+| e      | other error       |                                               |
+
+It also periodically emits error reports.  In the following example,
+these are mostly caused by the primitive type system.
+
+
+** License
+
+SQLsmith is available under GPLv3.  Use it at your own risk.  It may
+*damage your database* (one of the purposes of this tool /is/ to try
+and break things).  See the file [[COPYING]] for details.
+
+** Authors for SQLsmith
+
+Andreas Seltenreich <seltenreich@gmx.de>
+
+** Authors for SQLsmith driver for MonetDB
+
+Bo Tang <tangloner@gmail.com>
+
+Stefan Manegold <Stefan.Manegold@cwi.nl>
